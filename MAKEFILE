@@ -1,0 +1,103 @@
+DEBUG    = 0
+SRCDIR   = .
+INCDIR   = .
+LOBJDIR  = L
+SOBJDIR  = S
+
+#        $(TOOLS)\toolsl.lib\
+#        $(TOOLS)\toolss.lib\
+#        $(TOOLS)\tools.h
+
+all   : toolsl.lib\
+        toolss.lib
+   @echo Tools Done
+
+$(TOOLS)\toolsl.lib     : toolsl.lib     ; copy $** $@
+$(TOOLS)\toolss.lib     : toolss.lib     ; copy $** $@
+$(TOOLS)\tools.h        : tools.h        ; copy $** $@
+
+
+##### Module Macros ####
+INCLS    = $(INCDIR)\tools.h
+
+SRCS     = $(SRCDIR)\scr_io.asm\
+           $(SRCDIR)\htol.asm\
+           $(SRCDIR)\itoh.asm\
+           $(SRCDIR)\beep.c\
+           $(SRCDIR)\colour.c\
+           $(SRCDIR)\delay.c\
+           $(SRCDIR)\des.c\
+           $(SRCDIR)\des_file.c\
+           $(SRCDIR)\dir_scan.c\
+           $(SRCDIR)\field.c\
+           $(SRCDIR)\filesize.c\
+           $(SRCDIR)\menu.c\
+           $(SRCDIR)\inifile.cpp\
+           $(SRCDIR)\scr.c\
+           $(SRCDIR)\scr_edln.c\
+           $(SRCDIR)\tvm.c\
+           $(SRCDIR)\btrv.c
+
+#           $(SRCDIR)\dispchar.asm\
+#           $(SRCDIR)\dispstr.asm\
+#           $(SRCDIR)\disptype.asm\
+#           $(SRCDIR)\putstr.asm\
+#           $(SRCDIR)\scrs.asm\
+#           $(SRCDIR)\delay5.asm\
+#           $(SRCDIR)\wstr.asm\
+
+OBJS = $(SRCS:.cpp=.obj)
+OBJS = $(OBJS:.c=.obj)
+OBJS = $(OBJS:.asm=.obj)
+LOBJS = $(OBJS:.\=L\)
+SOBJS = $(OBJS:.\=S\)
+
+##### Build Option Macros #####
+!if $(DEBUG)
+AOPT   = -DDEBUG -Zi
+COPT   = -DDEBUG -Zid -Od -W4
+!else
+AOPT   =
+COPT   = -nologo -Oxs -Gs -W4
+!endif
+
+##### Inference Rules #####
+{.}.cpp{L}.obj:
+    cl -c -W3 -AL $(COPT) -DLMODEL -I$(INCDIR) -Fo$@ $**
+
+{.}.cpp{S}.obj:
+    cl -c -W3 -AS $(COPT) -DSMODEL -I$(INCDIR) -Fo$@ $**
+
+{.}.c{L}.obj:
+    cl -c -W3 -AL $(COPT) -DLMODEL -I$(INCDIR) -Fo$@ $**
+
+{.}.c{S}.obj:
+    cl -c -W3 -AS $(COPT) -DSMODEL -I$(INCDIR) -Fo$@ $**
+
+{.}.asm{L}.obj:
+    masm -Mx $(AOPT) -DLMODEL $**,$@;
+
+{.}.asm{S}.obj:
+    masm -Mx $(AOPT) -DSMODEL $**,$@;
+
+##### Dependents #####
+#$(LOBJS):  $(INCLS)
+#$(SOBJS):  $(INCLS)
+
+toolss.lib: $(SOBJS)
+   @if exist $@ del $@
+   @LIB @<<
+$@
+y
+$**
+$*.lst;
+<<KEEP
+
+toolsl.lib: $(LOBJS)
+   @if exist $@ del $@
+   @LIB @<<
+$@
+y
+$**
+$*.lst;
+<<KEEP
